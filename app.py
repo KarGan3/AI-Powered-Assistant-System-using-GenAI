@@ -41,7 +41,13 @@ def login_required(f):
 def home():
     if 'user' in session:
         return redirect(url_for('dashboard'))
-    return render_template('index.html')
+    # Pass current user (if any) into the template so the UI can show logged-in state
+    return render_template('index.html', user=session.get('user'))
+
+
+@app.route('/test')
+def test():
+    return "Server is working"
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -259,4 +265,8 @@ def delete_task(task_id):
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Allow configuring the port and debug mode via environment variables for deployment
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() in ('1', 'true', 'yes')
+    # Bind to 0.0.0.0 so the app is reachable in container/VM environments
+    app.run(debug=debug, host='0.0.0.0', port=port)
